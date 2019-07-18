@@ -6,7 +6,7 @@ const range = require('express-range')
 const compression = require('compression')
 
 const { Validator, ValidationError } = require('express-json-validator-middleware')
-const OpenAPIValidator = require('express-openapi-validator').OpenApiValidator;
+const  OpenAPIValidator  = require('express-openapi-validator').OpenApiValidator;
 
 const schemaValidator = new Validator({ allErrors: true, verbose: true });
 
@@ -22,9 +22,9 @@ console.info(`Using ${keys.mongo}`);
 
 // TODO change your databaseName and collectioName 
 // if they are not the defaults below
-const db = CitiesDB({
-	connectionUrl: keys.mongo,
-	databaseName: 'cities',
+const db = CitiesDB({  
+	connectionUrl: keys.mongo, 
+	databaseName: 'cities', 
 	collectionName: 'cities'
 });
 
@@ -35,111 +35,115 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // TODO 1/2 Load schemans
+
+//Loading the schema file
 const citySchema = require('./schema/city-schema.json');
 
-new OpenAPIValidator({
-	apiSpecPath: join(__dirname, 'schema', 'city-api.yaml')
+new OpenAPIValidator({ 
+    apiSpecPath: join(__dirname, 'schema', 'city-api.yaml')
 }).install(app)
-
 
 // Start of workshop
 // TODO 2/2 Copy your routes from workshop02 here
 
-// Start of workshop
-
 // Mandatory workshop
 // TODO GET /api/states
-app.get('/api/states',
-	(req, resp) => {
-		resp.type('application/json')
-		db.findAllStates()
-			.then(result => {
-				resp.status(200)
-				resp.json(result);
-			})
-			.catch(error => {
-				resp.status(400)
-				resp.json({ error: error })
-			});
-	}
+app.get('/api/states', 
+    (req, resp) => {
+
+        // Content-Type: appliction/json
+        resp.type('application/json')
+
+        db.findAllStates()
+            .then(result => {
+                // 200 OK
+                resp.status(200)
+                resp.json(result);
+            })
+            .catch(error => {
+                // 400 Bad Request
+                resp.status(400)
+                resp.json({ error: error })
+            });
+    }
 );
-
-
 
 // TODO GET /api/state/:state
-app.get('/api/state/:state',
-	(req, resp) => {
-		const stateAbbrev = req.params.state;
-		resp.type('application/json')
-		db.findAllStates()
-			.then(result => {
-				if (result.indexOf(stateAbbrev.toUpperCase()) < 0) {
-					resp.status(400);
-					resp.json({ error: `Not a valid state: ${stateAbbrev}` })
-					return;
-				}
-				return db.findCitiesByState(stateAbbrev)
-			})
-			.then(result => {
-				resp.status(200)
-				resp.json(result.map(v => `/api/city/${v}`));
-			})
-			.catch(error => {
-				resp.status(400)
-				resp.json({ error: error })
-			});
-	}
+app.get('/api/state/:state', 
+    (req, resp) => {
+        const stateAbbrev = req.params.state;
+        resp.type('application/json')
+        db.findAllStates()
+            .then(result => {
+                if (result.indexOf(stateAbbrev.toUpperCase()) < 0) {
+                    resp.status(400);
+                    resp.json({ error: `Not a valid state: '${stateAbbrev}'`})
+                    return;
+                }
+                return (db.findCitiesByState(stateAbbrev))
+            })
+            .then(result => {
+                resp.status(200)
+                resp.json(result.map(v => `/api/city/${v}`));
+            })
+            .catch(error => {
+                // 400 Bad Request
+                resp.status(400)
+                resp.json({ error: error })
+            });
+    }
 );
-
-
 
 // TODO GET /api/city/:cityId
 app.get('/api/city/:cityId',
-	(req, resp) => {
-		const cityId = req.params.cityId;
-		resp.type('application/json')
-		db.findCityById(cityId)
-			.then(result => {
-				if (result.length == 0) {
-					resp.status(404);
-					resp.json({ error: `Not a valid city Id: ${cityId}` })
-					return;
-				}
-				resp.status(200)
-				resp.json(result[0]);
-				return result;
-			})
-			.catch(error => {
-				resp.status(400)
-				resp.json({ error: error })
-			});
-	}
+    (req, resp) => {
+        resp.type('application/json');
+        db.findCityById(req.params.cityId)
+            .then(result => {
+                if (result.length > 0) {
+                    resp.status(200)
+                    resp.json(result[0]);
+                    return
+                }
+                resp.status(404);
+                resp.json({ error: `City not found: ${req.params.cityId}`})
+            })
+            .catch(error => {
+                resp.status(400);
+                resp.json({ error: error});
+            })
+    }
 );
 
-
 // TODO POST /api/city
-app.post('/api/city',
-	schemaValidator.validate({ body: citySchema }),
-	(req, resp) => {
-		const newCity = req.body;
-		resp.type('application/json')
-		db.insertCity(newCity)
-			.then(result => {
-				resp.status(201)
-				resp.json(result);
-			})
-			.catch(error => {
-				resp.status(400);
-				resp.json({ error: error });
-			})
-	}
+// Content-Type: application/json
+/*
+    {
+    "city" : "BARRE",
+    "loc" : [ -72.108354, 42.409698 ],
+    "pop" : 4546,
+    "state" : "MA"
+}
+*/
+app.post('/api/city', 
+    schemaValidator.validate({ body: citySchema }),
+    (req, resp) => {
+        const newCity = req.body;
+        resp.type('application/json')
+        db.insertCity(newCity)
+            .then(result => {
+                resp.status(201)
+                resp.json(result);
+            })
+            .catch(error => {
+                resp.status(400);
+                resp.json({ error: error});
+            })
+    }
 )
-
-
 
 // Optional workshop
 // TODO HEAD /api/state/:state
-
 
 
 // TODO GET /state/:state/count
@@ -147,7 +151,6 @@ app.post('/api/city',
 
 
 // TODO GET /city/:name
-
 
 
 // End of workshop

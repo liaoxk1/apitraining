@@ -1,6 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema",
-    "$id": "city",
+    "$id": "City",
     "type": "object",
     "definitions": {
         "state": {
@@ -56,9 +56,7 @@
                 "HI",
                 "OR",
                 "WA",
-                "AK",
-                "SG",
-                "HD"
+                "AK"
             ]
         }
     },
@@ -70,16 +68,16 @@
             "type": "string"
         },
         "pop": {
-            "type": "number",
+            "type": "integer",
             "minimum": 300
         },
         "loc": {
             "type": "array",
             "items": {
-                "type": "number"
-            },
-            "minItems": 2,
-            "maxItems": 2
+                "type": "number",
+                "minItems": 2,
+                "maxItems": 2
+            }
         },
         "state": {
             "$ref": "#/definitions/state"
